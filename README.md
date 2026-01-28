@@ -687,4 +687,4 @@ Pour toute question sur le projet :
 
 ---
 
-**Développé avec ❤️ par [Vos Noms] - Projet M2 Software 2025-2026**
+**Développé avec par [Vos Noms] - Projet M2 Software 2025-2026**

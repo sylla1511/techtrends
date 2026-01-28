@@ -1,14 +1,13 @@
 """
-TechTrends - Application Streamlit d'analyse d'actualités tech (Version Améliorée)
+TechTrends - Application Streamlit d'analyse d'actualités tech (Version améliorée)
 """
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from wordcloud import WordCloud
-from datetime import datetime, timedelta
+from datetime import datetime
 import sys
 from pathlib import Path
 
@@ -28,13 +27,13 @@ st.set_page_config(
     page_title="TechTrends - Actualités Tech",
     page_icon="📰",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
 # Style CSS personnalisé amélioré
-st.markdown("""
+st.markdown(
+    """
     <style>
-    /* Import Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
     
     * {
@@ -45,7 +44,8 @@ st.markdown("""
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         background-attachment: fixed;
     }
-    
+
+    /* métriques */
     [data-testid="stMetricValue"] {
         font-size: 2.5rem;
         font-weight: 700;
@@ -86,6 +86,7 @@ st.markdown("""
     
     [data-testid="stSidebar"] * {
         color: white !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
     }
     
     .article-card {
@@ -103,7 +104,9 @@ st.markdown("""
         box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
     }
     </style>
-""", unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True,
+)
 
 # Initialisation de la session
 if "data_loaded" not in st.session_state:
@@ -113,8 +116,8 @@ if "data_loaded" not in st.session_state:
     st.session_state.last_refresh = None
 
 
-def load_data(use_cache: bool = True):
-    """Charge les données depuis les sources et la base de données"""
+def load_data(use_cache: bool = True) -> pd.DataFrame:
+    """Charge les données depuis les sources et/ou la base SQLite."""
     with st.spinner("🔄 Chargement des données..."):
         if use_cache:
             df = st.session_state.db.get_all_articles(limit=200)
@@ -147,36 +150,62 @@ def load_data(use_cache: bool = True):
         return df
 
 
+def _start_card():
+    st.markdown(
+        """
+        <div style="
+            background: rgba(255, 255, 255, 0.12);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(8px);
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def _end_card():
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def display_home():
-    """Page d'accueil avec vue d'ensemble améliorée"""
-    st.markdown("""
+    """Page d'accueil avec vue d'ensemble améliorée."""
+    st.markdown(
+        """
         <div style='text-align: center; padding: 2rem 0;'>
             <h1 style='font-size: 4rem; margin-bottom: 0;'>📰 TechTrends</h1>
-            <p style='font-size: 1.5rem; color: #4a5568; font-weight: 500;'>
+            <p style='font-size: 1.5rem; color: #f7fafc; font-weight: 500;'>
                 Analyse en temps réel des tendances technologiques
             </p>
         </div>
-    """, unsafe_allow_html=True)
+        """,
+        unsafe_allow_html=True,
+    )
 
     if st.session_state.last_refresh:
         time_diff = datetime.now() - st.session_state.last_refresh
         minutes_ago = int(time_diff.total_seconds() / 60)
-        st.markdown(f"""
-            <div style='text-align: center; color: #718096; margin-bottom: 2rem;'>
+        st.markdown(
+            f"""
+            <div style='text-align: center; color: #e2e8f0; margin-bottom: 2rem;'>
                 🕐 Dernière mise à jour : il y a {minutes_ago} minute(s)
             </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True,
+        )
+
+    _start_card()
 
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        if st.button("🔄 Rafraîchir", type="primary", use_container_width=True):
+        if st.button("🔄 Rafraîchir les données", type="primary", use_container_width=True):
             st.session_state.df = load_data(use_cache=False)
             st.session_state.data_loaded = True
             st.rerun()
 
     with col2:
-        if st.button("💾 Charger BDD", use_container_width=True):
+        if st.button("💾 Charger depuis SQLite", use_container_width=True):
             st.session_state.df = load_data(use_cache=True)
             st.session_state.data_loaded = True
             st.rerun()
@@ -194,7 +223,7 @@ def display_home():
 
     with col4:
         if not st.session_state.df.empty:
-            json_data = st.session_state.df.to_json(orient='records', indent=2)
+            json_data = st.session_state.df.to_json(orient="records", indent=2)
             st.download_button(
                 label="📄 Export JSON",
                 data=json_data,
@@ -204,17 +233,21 @@ def display_home():
             )
 
     if st.session_state.df.empty:
-        st.markdown("""
+        st.markdown(
+            """
             <div style='text-align: center; padding: 4rem 2rem; background: white; border-radius: 16px; margin: 2rem 0;'>
-                <h2 style='color: #667eea;'>👋 Bienvenue sur TechTrends!</h2>
+                <h2 style='color: #667eea;'>👋 Bienvenue sur TechTrends !</h2>
                 <p style='font-size: 1.2rem; color: #4a5568; margin: 1rem 0;'>
-                    Commencez par cliquer sur <strong>🔄 Rafraîchir</strong> pour récupérer les dernières actualités tech
+                    Commencez par cliquer sur <strong>🔄 Rafraîchir les données</strong> pour récupérer les dernières actualités tech.
                 </p>
                 <p style='color: #718096;'>
-                    📊 Hacker News + Dev.to | 💾 Stockage SQLite | 🤖 Analyse NLP
+                    📊 Hacker News + Dev.to | 💾 SQLite | 🤖 Analyse NLP
                 </p>
             </div>
-        """, unsafe_allow_html=True)
+            """,
+            unsafe_allow_html=True,
+        )
+        _end_card()
         return
 
     df = st.session_state.df
@@ -223,7 +256,7 @@ def display_home():
     col1, col2, col3, col4 = st.columns(4)
 
     with col1:
-        st.metric("📊 Total Articles", f"{len(df):,}")
+        st.metric("📊 Total articles", f"{len(df):,}")
 
     with col2:
         sources = df["source"].nunique() if "source" in df.columns else 0
@@ -247,35 +280,45 @@ def display_home():
     col1, col2 = st.columns(2)
 
     with col1:
-        st.subheader("📈 Distribution par Source")
+        st.subheader("📈 Distribution par source")
         if "source" in df.columns:
             source_counts = df["source"].value_counts()
-            fig = go.Figure(data=[go.Pie(
-                labels=source_counts.index,
-                values=source_counts.values,
-                hole=0.4,
-                marker=dict(colors=['#667eea', '#764ba2'])
-            )])
+            fig = go.Figure(
+                data=[
+                    go.Pie(
+                        labels=source_counts.index,
+                        values=source_counts.values,
+                        hole=0.4,
+                        marker=dict(colors=["#667eea", "#764ba2"]),
+                    )
+                ]
+            )
             fig.update_layout(height=400, margin=dict(t=0, b=0, l=0, r=0))
             st.plotly_chart(fig, use_container_width=True)
 
     with col2:
-        st.subheader("🏷️ Top Catégories")
+        st.subheader("🏷️ Top catégories")
         if "category" in df.columns:
             category_counts = df["category"].value_counts().head(8)
-            fig = go.Figure(data=[go.Bar(
-                y=category_counts.index,
-                x=category_counts.values,
-                orientation='h',
-                marker=dict(color=category_counts.values, colorscale='Viridis')
-            )])
+            fig = go.Figure(
+                data=[
+                    go.Bar(
+                        y=category_counts.index,
+                        x=category_counts.values,
+                        orientation="h",
+                        marker=dict(color=category_counts.values, colorscale="Viridis"),
+                    )
+                ]
+            )
             fig.update_layout(height=400, showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
 
+    _end_card()
+
 
 def display_articles():
-    """Page d'affichage des articles"""
-    st.title("📄 Liste des Articles")
+    """Page d'affichage des articles."""
+    st.title("📄 Liste des articles")
 
     if st.session_state.df.empty:
         st.warning("Aucune donnée disponible.")
@@ -303,6 +346,8 @@ def display_articles():
         if "description" in df.columns:
             mask |= df["description"].str.contains(search_query, case=False, na=False)
         df = df[mask]
+
+    _start_card()
 
     st.markdown(f"### {len(df)} article(s) trouvé(s)")
 
@@ -339,10 +384,12 @@ def display_articles():
 
             st.markdown("---")
 
+    _end_card()
+
 
 def display_trends():
-    """Page d'analyse des tendances"""
-    st.title("📊 Analyse des Tendances")
+    """Page d'analyse des tendances."""
+    st.title("📊 Analyse des tendances")
 
     if st.session_state.df.empty:
         st.warning("Aucune donnée disponible.")
@@ -351,7 +398,9 @@ def display_trends():
     df = st.session_state.df
     processor = DataProcessor()
 
-    st.subheader("☁️ Nuage de Mots des Sujets Tendances")
+    _start_card()
+
+    st.subheader("☁️ Nuage de mots des sujets tendances")
 
     trending_topics = processor.get_trending_topics(df, column="title", top_n=50)
 
@@ -383,19 +432,25 @@ def display_trends():
         with col2:
             st.subheader("📈 Graphique des tendances")
             words, counts = zip(*trending_topics[:15])
-            fig = go.Figure(data=[go.Bar(
-                x=list(counts),
-                y=list(words),
-                orientation="h",
-                marker=dict(color=list(counts), colorscale="Viridis"),
-            )])
+            fig = go.Figure(
+                data=[
+                    go.Bar(
+                        x=list(counts),
+                        y=list(words),
+                        orientation="h",
+                        marker=dict(color=list(counts), colorscale="Viridis"),
+                    )
+                ]
+            )
             fig.update_layout(height=500, showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
 
+    _end_card()
+
 
 def display_stats():
-    """Page de statistiques"""
-    st.title("📈 Statistiques Détaillées")
+    """Page de statistiques détaillées."""
+    st.title("📈 Statistiques détaillées")
 
     if st.session_state.df.empty:
         st.warning("Aucune donnée disponible.")
@@ -405,6 +460,8 @@ def display_stats():
     processor = DataProcessor()
 
     stats = processor.get_statistics(df)
+
+    _start_card()
 
     col1, col2, col3 = st.columns(3)
 
@@ -428,13 +485,13 @@ def display_stats():
     st.markdown("---")
     st.subheader("🏆 Top 10 articles")
 
-    tab1, tab2, tab3 = st.tabs(["Par Points", "Par Commentaires", "Par Réactions"])
+    tab1, tab2, tab3 = st.tabs(["Par points", "Par commentaires", "Par réactions"])
 
     with tab1:
         if "points" in df.columns:
             top_points = processor.get_top_articles(df, metric="points", top_n=10)
             for _, row in top_points.iterrows():
-                st.markdown(f"**{row['title']}** - {int(row['points'])} points")
+                st.markdown(f"**{row['title']}** – {int(row['points'])} points")
                 st.markdown(f"[Lire l'article]({row['url']})")
                 st.markdown("---")
 
@@ -442,7 +499,7 @@ def display_stats():
         if "comments" in df.columns:
             top_comments = processor.get_top_articles(df, metric="comments", top_n=10)
             for _, row in top_comments.iterrows():
-                st.markdown(f"**{row['title']}** - {int(row['comments'])} commentaires")
+                st.markdown(f"**{row['title']}** – {int(row['comments'])} commentaires")
                 st.markdown(f"[Lire l'article]({row['url']})")
                 st.markdown("---")
 
@@ -450,9 +507,11 @@ def display_stats():
         if "reactions" in df.columns:
             top_reactions = processor.get_top_articles(df, metric="reactions", top_n=10)
             for _, row in top_reactions.iterrows():
-                st.markdown(f"**{row['title']}** - {int(row['reactions'])} réactions")
+                st.markdown(f"**{row['title']}** – {int(row['reactions'])} réactions")
                 st.markdown(f"[Lire l'article]({row['url']})")
                 st.markdown("---")
+
+    _end_card()
 
 
 # Navigation

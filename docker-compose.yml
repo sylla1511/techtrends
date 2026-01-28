@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   techtrends:
     build: .
@@ -7,8 +5,10 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./data:/app/data
-      - ./.env:/app/.env
+      - ./data:/app/data      # base SQLite et dossiers data
+      - ./.env:/app/.env      # variables d'environnement
+      - ./app:/app/app        # code Streamlit (app/)
+      - ./src:/app/src        # modules Python (src/)
     environment:
       - PYTHONUNBUFFERED=1
       - ENVIRONMENT=production
