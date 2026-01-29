@@ -683,8 +683,9 @@ Ce projet est réalisé dans le cadre du **Projet M2 Software 2025-2026** - Univ
 
 Pour toute question sur le projet :
 - 📧 Email : virgile.pesce@univ-amu.fr
-- 🔗 GitHub : [https://github.com/votre-username/techtrends](https://github.com/votre-username/techtrends)
-
+- 🔗 GitHub1 : [https://github.com/sylla1511/techtrends](https://github.com/sylla1511/techtrends)
+- 🔗 GitHub2 : [https://github.com/leoco112/techtrends](https://github.com/leoco112/techtrends)
+- 🔗 GitHub3 : [https://github.com/Nicolas-SECK/techtrends](https://github.com/Nicolas-SECK/techtrends)
 ---
 
-**Développé avec par [Nicolas SEck ,Abdou SYLLA] - Projet M2 Software 2025-2026**
+**Développé avec par [Leopold DUFRENOT, Nicolas SEck et Abdou SYLLA] - Projet M2 Software 2025-2026**
