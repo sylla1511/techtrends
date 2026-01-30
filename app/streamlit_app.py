@@ -3,10 +3,10 @@ TechTrends - Application Streamlit d'analyse d'actualités tech (Version amélio
 """
 import streamlit as st
 import pandas as pd
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import plotly.express as px
 import plotly.graph_objects as go
-#from wordcloud import WordCloud
+from wordcloud import WordCloud
 from datetime import datetime
 import sys
 from pathlib import Path
@@ -421,8 +421,8 @@ def display_trends():
 
     _start_card()
 
-    #st.subheader("☁️ Nuage de mots des sujets tendances")
-    st.info("Nuage de mots désactivé temporairement sur la version Cloud.")
+    st.subheader("☁️ Nuage de mots des sujets tendances")
+    #st.info("Nuage de mots désactivé temporairement sur la version Cloud.")
 
     trending_topics = processor.get_trending_topics(df, column="title", top_n=50)
 
