@@ -1,26 +1,32 @@
 """
 TechTrends - Application Streamlit d'analyse d'actualités tech (Version améliorée)
 """
-import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
-import plotly.express as px
-import plotly.graph_objects as go
-from wordcloud import WordCloud
-from datetime import datetime
 import sys
 from pathlib import Path
+from datetime import datetime
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import streamlit as st
+from wordcloud import WordCloud
 
 # Ajouter le répertoire parent au path pour les imports
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
     sys.path.append(str(ROOT_DIR))
 
-from src.scraper_hackernews import HackerNewsScraper
+from config import MAX_ARTICLES_PER_SOURCE, TECH_KEYWORDS
 from src.api_devto import DevToAPI
 from src.data_processing import DataProcessor
 from src.database import Database
-from config import TECH_KEYWORDS, MAX_ARTICLES_PER_SOURCE
+from src.llm_utils import summarize_text
+from src.scraper_hackernews import HackerNewsScraper
+
+# ---------------------------------------------------------------------
+# Initialisation et cache
+# ---------------------------------------------------------------------
 @st.cache_resource
 def get_db() -> Database:
     return Database()
@@ -33,99 +39,86 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# Style CSS personnalisé amélioré
-st.markdown(
-    """
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-    
-    * {
-        font-family: 'Inter', sans-serif;
-    }
-    
-    .main {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        background-attachment: fixed;
-    }
+# ---------------------------------------------------------------------
+# CSS
+# ---------------------------------------------------------------------
+st.markdown("""
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+* { font-family: 'Inter', sans-serif; }
+.main {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-attachment: fixed;
+}
+[data-testid="stMetricValue"] {
+    font-size: 2.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.stButton > button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+.stButton > button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+}
+.stDownloadButton > button {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+h1, h2, h3 {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+}
+[data-testid="stSidebar"] * {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+}
+.article-card {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    border-left: 4px solid #667eea;
+}
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
+}
+</style>
+""", unsafe_allow_html=True)
 
-    /* métriques */
-    [data-testid="stMetricValue"] {
-        font-size: 2.5rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    .stButton > button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        padding: 12px 24px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
-    }
-    
-    .stDownloadButton > button {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-    }
-    
-    h1, h2, h3 {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
-    }
-    
-    [data-testid="stSidebar"] * {
-        color: white !important;
-        text-shadow: 0 1px 2px rgba(0,0,0,0.25);
-    }
-    
-    .article-card {
-        background: white;
-        padding: 24px;
-        border-radius: 16px;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        transition: all 0.3s ease;
-        border-left: 4px solid #667eea;
-    }
-    
-    .article-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 12px 32px rgba(102, 126, 234, 0.25);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Initialisation de la session
+# ---------------------------------------------------------------------
+# Session state
+# ---------------------------------------------------------------------
 if "data_loaded" not in st.session_state:
     st.session_state.data_loaded = False
     st.session_state.df = pd.DataFrame()
     st.session_state.db = get_db()
     st.session_state.last_refresh = None
 
-
-
+# ---------------------------------------------------------------------
+# Chargement des données
+# ---------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
 def _load_data_from_db(limit: int = 200) -> pd.DataFrame:
     """Lecture des articles depuis SQLite (mise en cache)."""
     db = get_db()
     return db.get_all_articles(limit=limit)
-
 
 def load_data(use_cache: bool = True) -> pd.DataFrame:
     """Charge les données depuis les sources et/ou la base SQLite."""
@@ -168,40 +161,35 @@ def load_data(use_cache: bool = True) -> pd.DataFrame:
 
         return df
 
-
-
-
+# ---------------------------------------------------------------------
+# Fonctions utilitaires UI
+# ---------------------------------------------------------------------
 def _start_card():
-    st.markdown(
-        """
-        <div style="
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 16px;
-            padding: 1.5rem;
-            backdrop-filter: blur(8px);
-        ">
-        """,
-        unsafe_allow_html=True,
-    )
-
+    st.markdown("""
+    <div style="
+        background: rgba(255,255,255,0.12);
+        border-radius: 16px;
+        padding: 1.5rem;
+        backdrop-filter: blur(8px);
+    ">
+    """, unsafe_allow_html=True)
 
 def _end_card():
     st.markdown("</div>", unsafe_allow_html=True)
 
-
+# ---------------------------------------------------------------------
+# Pages principales
+# ---------------------------------------------------------------------
 def display_home():
     """Page d'accueil avec vue d'ensemble améliorée."""
-    st.markdown(
-        """
-        <div style='text-align: center; padding: 2rem 0;'>
-            <h1 style='font-size: 4rem; margin-bottom: 0;'>📰 TechTrends</h1>
-            <p style='font-size: 1.5rem; color: #f7fafc; font-weight: 500;'>
-                Analyse en temps réel des tendances technologiques
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    st.markdown("""
+    <div style='text-align: center; padding: 2rem 0;'>
+        <h1 style='font-size: 4rem; margin-bottom: 0;'>📰 TechTrends</h1>
+        <p style='font-size: 1.5rem; color: #f7fafc; font-weight: 500;'>
+            Analyse en temps réel des tendances technologiques
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     if st.session_state.last_refresh:
         time_diff = datetime.now() - st.session_state.last_refresh
@@ -254,20 +242,17 @@ def display_home():
             )
 
     if st.session_state.df.empty:
-        st.markdown(
-            """
-            <div style='text-align: center; padding: 4rem 2rem; background: white; border-radius: 16px; margin: 2rem 0;'>
-                <h2 style='color: #667eea;'>👋 Bienvenue sur TechTrends !</h2>
-                <p style='font-size: 1.2rem; color: #4a5568; margin: 1rem 0;'>
-                    Commencez par cliquer sur <strong>🔄 Rafraîchir les données</strong> pour récupérer les dernières actualités tech.
-                </p>
-                <p style='color: #718096;'>
-                    📊 Hacker News + Dev.to | 💾 SQLite | 🤖 Analyse NLP
-                </p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        st.markdown("""
+        <div style='text-align: center; padding: 4rem 2rem; background: white; border-radius: 16px; margin: 2rem 0;'>
+            <h2 style='color: #667eea;'>👋 Bienvenue sur TechTrends !</h2>
+            <p style='font-size: 1.2rem; color: #4a5568; margin: 1rem 0;'>
+                Commencez par cliquer sur <strong>🔄 Rafraîchir les données</strong> pour récupérer les dernières actualités tech.
+            </p>
+            <p style='color: #718096;'>
+                📊 Hacker News + Dev.to | 💾 SQLite | 🤖 Analyse NLP
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         _end_card()
         return
 
@@ -336,7 +321,6 @@ def display_home():
 
     _end_card()
 
-
 def display_articles():
     """Page d'affichage des articles."""
     st.title("📄 Liste des articles")
@@ -372,7 +356,7 @@ def display_articles():
 
     st.markdown(f"### {len(df)} article(s) trouvé(s)")
 
-    for _, row in df.head(50).iterrows():
+    for idx, (_, row) in enumerate(df.head(50).iterrows()):
         with st.container():
             col1, col2 = st.columns([4, 1])
 
@@ -395,18 +379,28 @@ def display_articles():
                 if meta_parts:
                     st.markdown(" • ".join(meta_parts))
 
+                # Texte complet pour le résumé
+                full_text = ""
+                if "description" in row and pd.notna(row["description"]):
+                    full_text += str(row["description"]) + "\n\n"
+                full_text += str(row.get("title", ""))
+
+                if st.button("🧠 Résumer avec l'IA", key=f"summarize_{row.get('id', idx)}"):
+                    with st.spinner("Génération du résumé..."):
+                        summary = summarize_text(full_text)
+                    st.info(summary)
+
             with col2:
-                if "points" in row and row["points"] > 0:
+                if "points" in row and pd.notna(row["points"]) and row["points"] > 0:
                     st.metric("Points", int(row["points"]))
-                if "reactions" in row and row["reactions"] > 0:
+                if "reactions" in row and pd.notna(row["reactions"]) and row["reactions"] > 0:
                     st.metric("❤️", int(row["reactions"]))
-                if "comments" in row and row["comments"] > 0:
+                if "comments" in row and pd.notna(row["comments"]) and row["comments"] > 0:
                     st.metric("💬", int(row["comments"]))
 
             st.markdown("---")
 
     _end_card()
-
 
 def display_trends():
     """Page d'analyse des tendances."""
@@ -422,7 +416,6 @@ def display_trends():
     _start_card()
 
     st.subheader("☁️ Nuage de mots des sujets tendances")
-    #st.info("Nuage de mots désactivé temporairement sur la version Cloud.")
 
     trending_topics = processor.get_trending_topics(df, column="title", top_n=50)
 
@@ -441,6 +434,7 @@ def display_trends():
         fig, ax = plt.subplots(figsize=(15, 8))
         ax.imshow(wordcloud, interpolation="bilinear")
         ax.axis("off")
+        plt.tight_layout()
         st.pyplot(fig)
 
         st.markdown("---")
@@ -448,8 +442,8 @@ def display_trends():
 
         with col1:
             st.subheader("🔥 Top 10 mots-clés")
-            for idx, (word, count) in enumerate(trending_topics[:10], 1):
-                st.markdown(f"{idx}. **{word}** ({count} mentions)")
+            for rank, (word, count) in enumerate(trending_topics[:10], 1):
+                st.markdown(f"{rank}. **{word}** ({count} mentions)")
 
         with col2:
             st.subheader("📈 Graphique des tendances")
@@ -467,8 +461,41 @@ def display_trends():
             fig.update_layout(height=500, showlegend=False)
             st.plotly_chart(fig, use_container_width=True)
 
-    _end_card()
+    st.markdown("---")
+    st.subheader("📆 Tendances temporelles")
 
+    if "published_at" in df.columns:
+        # S'assurer du bon format
+        df["published_at"] = pd.to_datetime(df["published_at"], errors="coerce")
+        df["published_date"] = df["published_at"].dt.date
+
+        per_day = (
+            df.dropna(subset=["published_date"])
+            .groupby("published_date")
+            .size()
+            .reset_index(name="count")
+        )
+
+        if not per_day.empty:
+            fig = px.line(
+                per_day,
+                x="published_date",
+                y="count",
+                markers=True,
+                title="Nombre d'articles collectés par jour",
+            )
+            fig.update_layout(
+                xaxis_title="Date",
+                yaxis_title="Nombre d'articles",
+                height=400,
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Pas suffisamment de dates pour afficher une tendance temporelle.")
+    else:
+        st.info("La colonne 'published_at' est manquante dans les données.")
+
+    _end_card()
 
 def display_stats():
     """Page de statistiques détaillées."""
@@ -535,8 +562,9 @@ def display_stats():
 
     _end_card()
 
-
+# ---------------------------------------------------------------------
 # Navigation
+# ---------------------------------------------------------------------
 st.sidebar.title("🗂️ Navigation")
 page = st.sidebar.radio(
     "Choisir une page",

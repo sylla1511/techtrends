@@ -29,3 +29,4 @@ pytz==2024.2
 fastapi==0.115.6
 uvicorn==0.32.1
 selenium==4.27.1
+openai>=1.6.0

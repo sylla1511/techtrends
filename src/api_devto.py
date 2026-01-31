@@ -95,12 +95,12 @@ class DevToAPI:
 
     def get_top_articles(self, per_page: int = 30) -> List[Dict[str, Any]]:
         """
-        Articles populaires des 7 derniers jours
+        Articles populaires des 15 derniers jours
         """
         per_page = min(per_page, self.max_articles)
         params = {
             "per_page": per_page,
-            "top": 7,
+            "top": 15,
         }
         logger.info("Fetching top Dev.to articles...")
         return self._fetch(params)

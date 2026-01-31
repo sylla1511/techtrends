@@ -1,6 +1,5 @@
 """
 Utilitaires Selenium pour TechTrends
-(usage démonstratif pour le programme M2)
 """
 from typing import List, Dict
 import logging
