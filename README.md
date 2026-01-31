@@ -301,7 +301,7 @@ heroku container:push web     # Dockerfile
 ### VPS Ubuntu
 
 ```bash
-git clone https://github.com/sylla1511/techtrends_sylla
+git clone https://github.com/sylla1511/techtrends.git
 cd techtrends_sylla
 docker compose up -d
 # Accès: http://IP_SERVEUR:8501
@@ -323,7 +323,7 @@ docker compose up -d
 
 ```
 Archive: techtrends_sylla_v2.0.tar.gz (15MB)
-GitHub: https://github.com/sylla1511/techtrends_sylla
+GitHub: https://github.com/sylla1511/techtrends
 Docker SHA: sha256:052cfdc66930e7bdc5dce120ad4895f1e960cc8c98eb8d9622ab4b9ad402437f
 Authors: Abdou SYLLA, Léopold DUFRÉNOT, Nicolas SECK
 M2 Econométrie & Data Science 2025-2026
