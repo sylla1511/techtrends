@@ -94,6 +94,32 @@ docker compose logs -f      # Logs temps réel
 docker compose down         # Stop propre
 ```
 
+requirements :
+
+```
+python-dotenv==1.0.0
+pandas==2.2.2
+numpy==1.26.4
+beautifulsoup4==4.12.3
+requests==2.32.3
+# lxml supprimé : BeautifulSoup n'en a pas absolument besoin pour ton usage
+sqlalchemy==2.0.23
+nltk==3.8.1
+wordcloud==1.9.4
+textblob==0.17.1
+matplotlib==3.9.2
+seaborn==0.13.2
+plotly==5.24.1
+streamlit==1.39.0
+pytest==7.4.3
+pytest-cov==4.1.0
+python-dateutil==2.9.0.post0
+pytz==2024.2
+fastapi==0.115.6
+uvicorn==0.32.1
+selenium==4.27.1
+openai>=1.6.0
+```
 Dockerfile optimisé :
 
 ```
