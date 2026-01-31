@@ -6,8 +6,6 @@ numpy==1.26.4
 beautifulsoup4==4.12.3
 requests==2.32.3
 
-# lxml supprimé : BeautifulSoup n'en a pas absolument besoin pour ton usage
-
 sqlalchemy==2.0.23
 
 nltk==3.8.1

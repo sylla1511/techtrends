@@ -1,5 +1,8 @@
 """
-Utilitaires Selenium pour TechTrends
+
+BeautifulSoup is limited, particularly when dealing with JavaScript and when changing pages,
+whereas Selenium allows you to generate an interface 
+and go beyond traditional scraping when it is insufficient.
 """
 from typing import List, Dict
 import logging
@@ -11,7 +14,7 @@ from selenium.webdriver.common.by import By
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Example: Retrieving Hacker News headlines with Selenium
 def get_hn_titles_with_selenium(max_articles: int = 10) -> List[Dict[str, str]]:
     """
     Exemple: récupérer quelques titres Hacker News avec Selenium.
@@ -21,7 +24,7 @@ def get_hn_titles_with_selenium(max_articles: int = 10) -> List[Dict[str, str]]:
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    # À adapter selon ton driver (Chrome, Chromium, etc.)
+    # To be adapted according to your browser (Chrome, Chromium, etc.)
     driver = webdriver.Chrome(options=options)
 
     driver.get("https://news.ycombinator.com/")

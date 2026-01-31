@@ -4,6 +4,7 @@ from typing import List, Dict, Any
 from src.database import Database
 from src.data_processing import DataProcessor
 
+# Initializing the FastAPI application
 app = FastAPI(
     title="TechTrends API",
     description="API REST pour exposer les articles et statistiques TechTrends",
@@ -13,6 +14,7 @@ app = FastAPI(
 db = Database()
 processor = DataProcessor()
 
+# Endpoint to get a list of articles
 
 @app.get("/articles", summary="Lister les articles")
 def get_articles(limit: int = 50) -> List[Dict[str, Any]]:

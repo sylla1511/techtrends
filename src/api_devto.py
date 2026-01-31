@@ -1,5 +1,7 @@
 """
-Module pour récupérer les articles de Dev.to via leur API
+This module uses the dev.t API to retrieve articles, processes them, 
+and provides methods for retrieving 
+the latest articles, most popular articles, or articles filtered by tag. 
 """
 import requests
 from typing import List, Dict, Any
@@ -8,17 +10,17 @@ from datetime import datetime
 import sys
 from pathlib import Path
 
-# Ajouter la racine du projet au path
+# Adding the project root directory to sys.path
 ROOT_DIR = Path(__file__).resolve().parents[1]
 if str(ROOT_DIR) not in sys.path:
-    sys.path.append(str(ROOT_DIR))
-
+    sys.path.insert(0, str(ROOT_DIR))
+    
 from config import MAX_ARTICLES_PER_SOURCE
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Dev.to API client
 class DevToAPI:
     """Client API pour Dev.to"""
 
@@ -32,7 +34,7 @@ class DevToAPI:
         self.headers = {
             "User-Agent": "TechTrends/1.0"
         }
-
+# Internal method for making API requests
     def _fetch(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
         try:
             resp = requests.get(
@@ -67,7 +69,7 @@ class DevToAPI:
         except Exception as e:
             logger.error(f"Error fetching Dev.to articles: {e}")
             return []
-
+# Public methods to get articles
     def get_latest_articles(self, per_page: int = 30, page: int = 1) -> List[Dict[str, Any]]:
         """
         Derniers articles (état 'fresh')
@@ -105,11 +107,11 @@ class DevToAPI:
         logger.info("Fetching top Dev.to articles...")
         return self._fetch(params)
 
-
+# Example
 if __name__ == "__main__":
     api = DevToAPI(max_articles=10)
 
-    print("\n🔥 Top articles Dev.to:")
+    print("\n Top articles Dev.to:")
     top_articles = api.get_top_articles(per_page=5)
     for idx, art in enumerate(top_articles[:3], 1):
         print(f"{idx}. {art['title']} ({art['reactions']}❤️, {art['comments']}💬) -> {art['url']}")

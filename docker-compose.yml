@@ -5,10 +5,10 @@ services:
     ports:
       - "8501:8501"
     volumes:
-      - ./data:/app/data      # base SQLite et dossiers data
-      - ./.env:/app/.env      # variables d'environnement
-      - ./app:/app/app        # code Streamlit (app/)
-      - ./src:/app/src        # modules Python (src/)
+      - ./data:/app/data      # SQLite database and data folders
+      - ./.env:/app/.env      # environment variables
+      - ./app:/app/app        # Streamlit code (app/)
+      - ./src:/app/src        # Python modules (src/)
     environment:
       - PYTHONUNBUFFERED=1
       - ENVIRONMENT=production

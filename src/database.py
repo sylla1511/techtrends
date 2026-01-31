@@ -1,5 +1,8 @@
 """
-Module de gestion de la base de données SQLite
+
+This module manages the SQLite database used for TechTrends. 
+First, it initializes the database schema, manages the insertion of cleaned articles,
+allows articles to be retrieved and filtered, stores history, and calculates statistics.
 """
 import sqlite3
 import pandas as pd
@@ -10,7 +13,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Database management class
 class Database:
     """Classe pour gérer la base de données SQLite"""
 
@@ -23,7 +26,7 @@ class Database:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init_db()
 
-    # ---------- Connexion / init ----------
+    # Connexion / init 
 
     def _get_connection(self) -> sqlite3.Connection:
         """Retourne une nouvelle connexion SQLite"""
@@ -35,7 +38,7 @@ class Database:
             conn = self._get_connection()
             cursor = conn.cursor()
 
-            # Table des articles
+            # Table of contents articles
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS articles (
@@ -58,7 +61,7 @@ class Database:
                 """
             )
 
-            # Table des recherches (historique)
+            # Search table (history)
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS search_history (
@@ -83,7 +86,7 @@ class Database:
             logger.error(f"Error creating tables: {e}")
             raise
 
-    # ---------- Helpers ----------
+    # Helpers 
 
     @staticmethod
     def _to_str_date(value: Any) -> Optional[str]:
@@ -100,7 +103,7 @@ class Database:
         except Exception:
             return str(value)
 
-    # ---------- Insert ----------
+    # Insert 
 
     def insert_articles(self, articles: List[Dict[str, Any]]) -> int:
         """
@@ -158,7 +161,7 @@ class Database:
                         inserted += 1
 
                 except sqlite3.IntegrityError:
-                    # doublon
+                    # duplicate
                     continue
                 except Exception as e:
                     logger.warning(f"Error inserting article: {e}")
@@ -176,7 +179,7 @@ class Database:
         finally:
             conn.close()
 
-    # ---------- Selects ----------
+    # Selects
 
     def get_all_articles(self, limit: Optional[int] = None) -> pd.DataFrame:
         """Récupère tous les articles"""
@@ -239,7 +242,7 @@ class Database:
             logger.error(f"Error searching articles: {e}")
             return pd.DataFrame()
 
-    # ---------- Historique recherches ----------
+    # Search history
 
     def save_search(self, query: str, results_count: int):
         """Sauvegarde une recherche dans l'historique"""
@@ -270,7 +273,7 @@ class Database:
             logger.error(f"Error retrieving search history: {e}")
             return pd.DataFrame()
 
-    # ---------- Statistiques ----------
+    # Statistics
 
     def get_statistics(self) -> Dict[str, Any]:
         """Statistiques sur la base de données"""
@@ -300,7 +303,7 @@ class Database:
 
 
 if __name__ == "__main__":
-    # Test rapide
+    # Test the Database class
     db = Database("data/test_techtrends.db")
 
     sample_articles = [
@@ -315,11 +318,11 @@ if __name__ == "__main__":
     ]
 
     inserted = db.insert_articles(sample_articles)
-    print(f"\n✅ Inserted {inserted} articles")
+    print(f"\n Inserted {inserted} articles")
 
     df = db.get_all_articles(limit=5)
-    print(f"\n📊 Retrieved {len(df)} articles")
+    print(f"\n Retrieved {len(df)} articles")
     print(df[["title", "source"]])
 
     stats = db.get_statistics()
-    print(f"\n📈 Stats: {stats}")
+    print(f"\n Stats: {stats}")

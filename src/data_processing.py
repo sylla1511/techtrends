@@ -1,5 +1,8 @@
 """
-Module de traitement et analyse des données
+This module is for processing and analyzing article data. 
+First, it converts article lists into pandas dataframes, merges them, removes duplicates,
+extracts and analyzes keywords, then identifies trends based on a dictionary and ranks them according to engagement. 
+In addition, we have included descriptive statistics. 
 """
 import pandas as pd
 from typing import List, Dict, Tuple, Any
@@ -11,9 +14,9 @@ from collections import Counter
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Data processing class
 class DataProcessor:
-    """Classe pour traiter et analyser les données d'articles"""
+    """Class for processing and analyzing article data"""
 
     def __init__(self):
         self.stop_words = set([
@@ -25,14 +28,14 @@ class DataProcessor:
         ])
 
     def articles_to_dataframe(self, articles: List[Dict[str, Any]]) -> pd.DataFrame:
-        """Convertit une liste d'articles en DataFrame"""
+        """Converts a list of items into a DataFrame"""
         if not articles:
             logger.warning("No articles to convert")
             return pd.DataFrame()
 
         df = pd.DataFrame(articles)
 
-        # Titre
+        # Titles
         if "title" in df.columns:
             df["title"] = df["title"].fillna("").astype(str)
 
@@ -41,7 +44,7 @@ class DataProcessor:
             if col in df.columns:
                 df[col] = pd.to_datetime(df[col], errors="coerce")
 
-        # Numériques
+        # Numeric columns
         numeric_cols = ["points", "comments", "reactions", "reading_time"]
         for col in numeric_cols:
             if col in df.columns:
@@ -49,9 +52,9 @@ class DataProcessor:
 
         logger.info(f"Created DataFrame with {len(df)} articles and {len(df.columns)} columns")
         return df
-
+# Data analysis methods
     def merge_sources(self, *dfs: pd.DataFrame) -> pd.DataFrame:
-        """Fusionne plusieurs DataFrames (supprime doublons sur le titre)"""
+        """Merges multiple DataFrames (removes duplicates in the title)"""
         valid = [d for d in dfs if not d.empty]
         if not valid:
             return pd.DataFrame()
@@ -63,9 +66,9 @@ class DataProcessor:
 
         logger.info(f"Merged {len(valid)} sources into {len(merged)} articles")
         return merged
-
+# Extract keywords from text
     def extract_keywords(self, text: str, top_n: int = 10) -> List[Tuple[str, int]]:
-        """Extrait les mots-clés les plus fréquents d'un texte"""
+        """Extracts the most frequent keywords from a text"""
         if not text:
             return []
 
@@ -76,9 +79,9 @@ class DataProcessor:
         filtered = [w for w in words if w not in self.stop_words and len(w) > 3]
         counts = Counter(filtered)
         return counts.most_common(top_n)
-
+# Categorize articles by keywords
     def categorize_by_keywords(self, df: pd.DataFrame, keywords_dict: Dict[str, List[str]]) -> pd.DataFrame:
-        """Catégorise les articles selon des mots-clés dans le titre"""
+        """Categorize articles according to keywords in the title"""
         if df.empty or "title" not in df.columns:
             return df
 
@@ -94,23 +97,23 @@ class DataProcessor:
         df["category"] = df["title"].apply(find_cat)
         logger.info(f"Categories: {df['category'].value_counts().to_dict()}")
         return df
-
+# Identify trending topics
     def get_trending_topics(self, df: pd.DataFrame, column: str = "title", top_n: int = 20) -> List[Tuple[str, int]]:
-        """Identifie les sujets tendances à partir d'une colonne texte"""
+        """Identifies trending topics from a text column"""
         if df.empty or column not in df.columns:
             return []
 
         text = " ".join(df[column].dropna().astype(str))
         return self.extract_keywords(text, top_n=top_n)
-
+# Get top articles by metric
     def get_top_articles(self, df: pd.DataFrame, metric: str = "points", top_n: int = 10) -> pd.DataFrame:
-        """Top articles selon une métrique"""
+        """Top articles according to a metric"""
         if df.empty or metric not in df.columns:
             return pd.DataFrame()
         return df.nlargest(top_n, metric)
-
+# General statistics
     def get_statistics(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Statistiques générales sur les articles"""
+        """General statistics on articles"""
         if df.empty:
             return {}
 
@@ -137,7 +140,7 @@ class DataProcessor:
 
         return stats
 
-
+# Example usage
 if __name__ == "__main__":
     sample_articles = [
         {"title": "Introduction to Python Machine Learning", "points": 150, "source": "HackerNews"},
@@ -156,5 +159,5 @@ if __name__ == "__main__":
         "JavaScript": ["javascript", "framework"],
     }
     df = p.categorize_by_keywords(df, kws)
-    print("\n📊 Categories:")
+    print("\n Categories:")
     print(df[["title", "category"]])

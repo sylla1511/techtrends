@@ -1,5 +1,8 @@
 """
-Module de scraping pour Hacker News
+
+We coded this to scrape the Hacker News site, 
+so it automatically collects articles from the home page and metadata,
+without forgetting to set a limit to avoid being blocked, and then returns the results.
 """
 import requests
 from bs4 import BeautifulSoup
@@ -10,10 +13,10 @@ import time
 import sys
 from pathlib import Path
 
-# Ajouter la racine du projet au path pour trouver config.py
-ROOT_DIR = Path(__file__).resolve().parents[1]
+# Adding the project root directory to sys.path
+ROOT_DIR = Path(__file__).resolve().parents[1] 
 if str(ROOT_DIR) not in sys.path:
-    sys.path.append(str(ROOT_DIR))
+    sys.path.insert(0, str(ROOT_DIR))
 
 from config import SCRAPING_DELAY, MAX_ARTICLES_PER_SOURCE
 
@@ -21,7 +24,7 @@ from config import SCRAPING_DELAY, MAX_ARTICLES_PER_SOURCE
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
+# Hacker News Scraper class
 class HackerNewsScraper:
     """Scraper pour récupérer les articles de Hacker News"""
 
@@ -37,7 +40,7 @@ class HackerNewsScraper:
         self.headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
         }
-
+# Method to scrape front page
     def scrape_frontpage(self) -> List[Dict[str, Any]]:
         """
         Scrape la page d'accueil de Hacker News
@@ -119,6 +122,6 @@ class HackerNewsScraper:
 if __name__ == "__main__":
     scraper = HackerNewsScraper(max_articles=10)
     arts = scraper.scrape_frontpage()
-    print(f"\n✅ Scraped {len(arts)} articles")
+    print(f"\n Scraped {len(arts)} articles")
     if arts:
         print("Premier:", arts[0]["title"], "->", arts[0]["url"])

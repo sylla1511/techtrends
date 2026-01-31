@@ -2,7 +2,7 @@ import pandas as pd
 
 from src.data_processing import DataProcessor
 
-
+# Test cases for DataProcessor
 def test_articles_to_dataframe_basic():
     processor = DataProcessor()
     articles = [
@@ -18,7 +18,7 @@ def test_articles_to_dataframe_basic():
     assert df["points"].sum() == 30
     assert set(df["source"]) == {"HackerNews", "Dev.to"}
 
-
+# Additional test cases 1
 def test_categorize_by_keywords():
     processor = DataProcessor()
     df = pd.DataFrame(
@@ -42,7 +42,7 @@ def test_categorize_by_keywords():
     assert "DevOps" in cats
     assert "Other" in cats
 
-
+# Additional test cases 2
 def test_get_trending_topics():
     processor = DataProcessor()
     df = pd.DataFrame(
