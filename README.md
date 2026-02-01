@@ -82,7 +82,13 @@ techtrends_sylla/                    # 25 files, 15MB
 git clone https://github.com/sylla1511/techtrends.git
 cd techtrends_sylla
 cp .env.example .env
-echo "OPENAI_API_KEY=sk-proj-..." >> .env
+echo "OPENAI_API_KEY=sk-proj-..." >> .env  ## optionnel
+## 🚨 Problème conteneur (normal)
+Si erreur `techtrends_app already in use` :
+
+docker rm -f techtrends_app
+docker compose up -d
+
 
 # Build + run (100s first time)
 docker compose build        # Image: techtrends_sylla-techtrends.git
