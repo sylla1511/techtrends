@@ -27,6 +27,17 @@ from src.data_processing import DataProcessor
 from src.database import Database
 from src.llm_utils import summarize_text
 from src.scraper_hackernews import HackerNewsScraper
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Vérif clé OpenAI → Mode dégradé si absente
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+HAS_OPENAI = OPENAI_API_KEY is not None and OPENAI_API_KEY.startswith("sk-")
+
+if not HAS_OPENAI:
+    st.warning("⚠️ OpenAI non configuré → Résumés désactivés (fonctionnalités principales OK)")
 
 
 # Initialization and cache
