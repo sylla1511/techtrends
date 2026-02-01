@@ -48,7 +48,6 @@ def get_db() -> Database:
 
 # Page configuration
 
-st.set_page_config(page_title="TechTrends", layout="wide")
 
 # Custom CSS for enhanced styling
 
