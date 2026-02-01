@@ -411,9 +411,13 @@ def display_articles():
                 full_text += str(row.get("title", ""))
 
                 if st.button("Résumer avec l'IA", key=f"summarize_{row.get('id', idx)}"):
-                    with st.spinner("Génération du résumé..."):
-                        summary = summarize_text(full_text)
-                    st.info(summary)
+                    if not HAS_OPENAI:
+                       st.info("🔒 Résumé indisponible (OPENAI_API_KEY non définie).")
+                    else:
+                      from src.llm_utils import summarize_text
+                      with st.spinner("Génération du résumé..."):
+                         summary = summarize_text(full_text)
+                      st.info(summary)
 
             with col2:
                 if "points" in row and pd.notna(row["points"]) and row["points"] > 0:
