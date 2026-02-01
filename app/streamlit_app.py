@@ -48,12 +48,7 @@ def get_db() -> Database:
 
 # Page configuration
 
-st.set_page_config(
-    page_title="TechTrends - Actualités Tech",
-    page_icon="📰",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+st.set_page_config(page_title="TechTrends", layout="wide")
 
 # Custom CSS for enhanced styling
 
